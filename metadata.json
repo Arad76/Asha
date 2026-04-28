@@ -1,0 +1,6 @@
+{
+  "name": "Remix: AstroQuant Oil Prophet",
+  "description": "Quantum-financial forecasting engine integrating real-time TensorFlow.js neural drift, live TradingView charts, planetary aspects, and numerological cycles for precision WTI Crude Oil scalping.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

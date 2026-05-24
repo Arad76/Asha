@@ -13,6 +13,7 @@ import { AstroSeekWidget } from './components/AstroSeekWidget';
 import { PredictionTerminal } from './components/PredictionTerminal';
 import { HistoricalLog } from './components/HistoricalLog';
 import { IndicatorSelector } from './components/IndicatorSelector';
+import { VolatilityHeatmap } from './components/VolatilityHeatmap';
 import { getPLANETARY_DATA } from './lib/astrology';
 import { getDayNumerology } from './lib/numerology';
 import { AstroData, NumerologyData } from './types';
@@ -207,6 +208,10 @@ export default function App() {
               interval={chartInterval} 
               indicators={selectedIndicators}
             />
+          </div>
+          
+          <div className="h-[120px] shrink-0 mt-3">
+            <VolatilityHeatmap />
           </div>
         </section>
 

@@ -9,6 +9,8 @@ import { io, Socket } from "socket.io-client";
 import { PredictionResult, AstroData, NumerologyData } from '../types';
 import { Terminal, TrendingUp, TrendingDown, RefreshCcw, ShieldAlert, Newspaper, Activity, Database, BarChart3, BrainCircuit, Zap, ChevronUp, ChevronDown, Target, Clock, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { TradingStrategyPanel } from './TradingStrategyPanel';
+import { CorrelationPanel } from './CorrelationPanel';
 import { PredictionChart } from './PredictionChart';
 import { 
   LineChart, 
@@ -197,8 +199,14 @@ export function PredictionTerminal({ astro, numerology }: Props) {
         console.warn("Failed to fetch live quote proxy. Falling back.");
       }
 
-      // Parallel fetch macro sentiment via Gemini (Search grounded)
-      analyzeOverallSentiment().then(setMacroSentiment).catch(console.error);
+      // Wait for macro sentiment via Gemini so we can influence the prediction 
+      let fetchedSentiment: MarketSentiment | null = null;
+      try {
+        fetchedSentiment = await analyzeOverallSentiment();
+        setMacroSentiment(fetchedSentiment);
+      } catch (err) {
+        console.warn("Failed to fetch macro sentiment", err);
+      }
       
       const prompt = `
         TASK: High-frequency USOIL/WTI SCALPING prediction & HISTORICAL BACKTEST.
@@ -216,11 +224,15 @@ export function PredictionTerminal({ astro, numerology }: Props) {
            - Identify inverse or direct correlations currently impacting WTI.
         4. NUMEROLOGICAL CROSS-REFERENCE:
            - Cross-reference current date vibration (${numerology.dayNumber}) with planetary degrees.
-        5. TRADE SETUPS (DYNAMIC SCALPING & SWING): 
+        5. SENTIMENT ALIGNMENT:
+           - The current macro sentiment for WTI Crude Oil is: ${fetchedSentiment ? fetchedSentiment.consensus : 'seeking equilibrium'}.
+           - The sentiment score is ${fetchedSentiment ? fetchedSentiment.score : 0} (-1 bearish to 1 bullish) with ${fetchedSentiment ? fetchedSentiment.intensity : 'Low'} intensity.
+           - CRITICAL: Use Phase 5's sentiment to explicitly INFLUENCE and direct your overall market outlook, direction (UP/DOWN/NEUTRAL), and trade entry logic.
+        6. TRADE SETUPS (DYNAMIC SCALPING & SWING): 
            - CRITICAL ANCHOR PRICE: The true live spot price of WTI Crude Oil is EXACTLY $${livePriceStr}.
            - PROVIDE SPECIFIC ENTRY, STOP LOSS, and TAKE PROFIT for both SHORT-TERM SCALPS and LONG-TERM INTRADAY/SWING.
            - Use Gann prices for levels and Fibonacci for risk/reward ratios.
-        6. BACKTEST ANALYSIS: Search for USOIL/WTI action over the LAST ${period}.
+        7. BACKTEST ANALYSIS: Search for USOIL/WTI action over the LAST ${period}.
         
         OUTPUT FORMAT: JSON.
       `;
@@ -958,54 +970,19 @@ export function PredictionTerminal({ astro, numerology }: Props) {
                 )}
               </div>
 
+                {/* Predictive Correlation Model */}
+                <div className="pt-2 border-t border-white/5 space-y-2 mt-2">
+                  <CorrelationPanel />
+                </div>
+
                 {/* Dynamic Trade Setups */}
                 {prediction.tradeSetups && prediction.tradeSetups.length > 0 && (
-                  <div className="pt-2 border-t border-white/5 space-y-2">
-                    <div className="text-[10px] uppercase font-black text-oil-gold flex items-center gap-2">
-                      <Target size={12} className="text-oil-gold" />
-                      Dynamic Trade Matrix
-                    </div>
-                    <div className="grid grid-cols-1 gap-1.5">
-                      {prediction.tradeSetups.map((setup, idx) => (
-                        <div key={idx} className="p-2 bg-oil-gold/5 border border-oil-gold/10 rounded-lg group hover:border-oil-gold/30 transition-all">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
-                              setup.timeframe === 'Scalp' ? 'bg-blue-500/20 text-blue-400' :
-                              setup.timeframe === 'Intraday' ? 'bg-purple-500/20 text-purple-400' :
-                              'bg-green-500/20 text-green-400'
-                            }`}>
-                              {setup.timeframe} Vector
-                            </span>
-                            <div className="flex items-center gap-1 text-[7px] text-gray-500 font-mono">
-                              <Clock size={8} />
-                              SYNC ACTIVE
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-3 gap-2 mb-2">
-                            <div className="space-y-0.5">
-                              <div className="text-[7px] text-gray-600 uppercase font-bold">Entry</div>
-                              <div className="text-[10px] font-mono font-bold text-white">${setup.entry.toFixed(2)}</div>
-                            </div>
-                            <div className="space-y-0.5">
-                              <div className="text-[7px] text-gray-600 uppercase font-bold text-green-500/70">Take Profit</div>
-                              <div className="text-[10px] font-mono font-bold text-green-400">${setup.takeProfit.toFixed(2)}</div>
-                            </div>
-                            <div className="space-y-0.5">
-                              <div className="text-[7px] text-gray-600 uppercase font-bold text-red-500/70">Stop Loss</div>
-                              <div className="text-[10px] font-mono font-bold text-red-400">${setup.stopLoss.toFixed(2)}</div>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-1 flex items-start gap-1.5 p-1.5 bg-black/40 rounded border border-white/5">
-                            <Zap size={10} className="text-oil-gold shrink-0 mt-0.5" />
-                            <p className="text-[8px] text-gray-400 leading-tight italic">
-                              "{setup.logic}"
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="pt-2 border-t border-white/5 space-y-2 mt-2">
+                    <TradingStrategyPanel 
+                      strategy={{ ...prediction.strategy, confidence: prediction.confidence }} 
+                      tradeSetups={prediction.tradeSetups as any} 
+                      direction={prediction.direction as "UP" | "DOWN" | "NEUTRAL"} 
+                    />
                   </div>
                 )}
 

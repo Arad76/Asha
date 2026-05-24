@@ -88,7 +88,7 @@ export async function fetchOilNews(): Promise<NewsItem[]> {
     const newsData = await fetchWithRetry(async () => {
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: "Search for the latest CRITICAL WTI Crude Oil news. PRIORITY SOURCES: Reuters, Bloomberg, OPEC+ official statements, IEA (International Energy Agency), and OilPrice.com. Focus on geopolitical tensions (Middle East, Russia), inventory reports (EIA), and OPEC production cuts. Analyze the sentiment for WTI oil for each item. For each item, provide 2-3 concise bullet points summarizing the key market impact.",
+        contents: "Search for the latest CRITICAL WTI Crude Oil news. PRIORITY SOURCES: Telegram, Twitter, YouTube (FinTwit, major trading channels), Reuters, Bloomberg, OPEC+ statements, IEA. Focus on fast-breaking geopolitical tensions (Middle East, Russia), inventory reports (EIA), and OPEC production cuts. Look for 'breaking news' on social media platforms about oil. Analyze the sentiment for WTI oil for each item. For each item, provide 2-3 concise bullet points summarizing the key market impact.",
         config: {
           tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",

@@ -4,7 +4,7 @@
  */
 
 import * as AstronomyNamespace from 'astronomy-engine';
-const Astronomy: any = (AstronomyNamespace as any).default || AstronomyNamespace;
+const Astronomy: any = AstronomyNamespace;
 const { AstroTime, Body, GeoVector, Ecliptic } = Astronomy;
 
 import { calculateNumerology } from './numerology.ts';

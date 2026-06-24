@@ -12,6 +12,7 @@ const generateMockData = (): DataPoint[] => {
       timestamp: t.toISOString(),
       price: 80 + Math.random() * 15,
       astro: {
+        timestamp: t.toISOString(),
         planets: [
           { name: 'Sun', degree: (t.getDate() * 12) % 30, sign: 'Aries', minute: 0, retrograde: false, numerology: 1 },
           { name: 'Moon', degree: (t.getHours() * 15) % 30, sign: 'Taurus', minute: 0, retrograde: false, numerology: 2 }

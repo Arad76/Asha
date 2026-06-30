@@ -4,7 +4,13 @@
  */
 
 import * as AstronomyNamespace from 'astronomy-engine';
-const Astronomy: any = AstronomyNamespace;
+// astronomy-engine ships CommonJS for Node (exports live under `.default`) and ESM
+// for the browser bundle (named exports on the namespace). Resolve both. The key is
+// kept in a variable so Rollup can't statically flag the `.default` access as a
+// missing default export.
+const DEFAULT_KEY = 'default';
+const ns: any = AstronomyNamespace;
+const Astronomy: any = ns[DEFAULT_KEY] ?? ns;
 const { AstroTime, Body, GeoVector, Ecliptic } = Astronomy;
 
 import { calculateNumerology } from './numerology.ts';

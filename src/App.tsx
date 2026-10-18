@@ -11,6 +11,7 @@ import { AstroPanel } from './components/AstroPanel';
 import { AstroWheel } from './components/AstroWheel';
 import { AstroSeekWidget } from './components/AstroSeekWidget';
 import { PredictionTerminal } from './components/PredictionTerminal';
+import { TradingTerminal } from './components/TradingTerminal';
 import { HistoricalLog } from './components/HistoricalLog';
 import { IndicatorSelector } from './components/IndicatorSelector';
 import { VolatilityHeatmap } from './components/VolatilityHeatmap';
@@ -215,12 +216,17 @@ export default function App() {
           </div>
         </section>
 
-        {/* Right Sidebar: Prediction Engine */}
-        <aside className="w-full md:w-96 shrink-0 border-l border-oil-border bg-oil-dim flex flex-col">
-          <div className="flex-1 p-4 overflow-hidden">
+        {/* Right Sidebar: Trade Desk + Prediction Engine */}
+        <aside className="w-full md:w-96 shrink-0 border-l border-oil-border bg-oil-dim flex flex-col overflow-y-auto custom-scrollbar">
+          {/* Live 120x Trade Desk */}
+          <div className="p-4 pb-0 shrink-0">
+             <TradingTerminal />
+          </div>
+
+          <div className="h-[760px] shrink-0 p-4">
              <PredictionTerminal astro={astroData} numerology={numerology} />
           </div>
-          
+
           {/* Numerology Depth */}
           <div className="p-4 border-t border-oil-border bg-oil-black/50">
              <div className="text-[10px] uppercase font-bold text-gray-500 mb-2 flex items-center gap-2">

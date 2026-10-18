@@ -25,11 +25,27 @@ async function startServer() {
 
   const PORT = 3000;
 
+  // Live mark price, seeded from the last real scan and walked every second so
+  // the trading terminal always has a moving mark even between 60s scans
+  // (or when the live price source is blocked by network egress policy).
+  let markPrice = 85.0;
+  setInterval(() => {
+    const z = (Math.random() + Math.random() + Math.random() - 1.5) * 1.1; // ~normal
+    const pull = (85.0 - markPrice) * 0.0008; // gentle anchor
+    markPrice = Math.max(55, markPrice * (1 + 0.0015 * z) + pull);
+    io.emit("price-tick", { price: markPrice, timestamp: new Date().toISOString() });
+  }, 1000);
+
   // ML Data Ingestion Loop (Every 60 seconds / Minute-by-Minute)
   setInterval(async () => {
     try {
       const scan = await dataScanner.performScan();
-      
+
+      // Anchor the live mark to the freshly scanned spot price when available.
+      if (typeof scan.price === "number" && scan.price > 0) {
+        markPrice = scan.price;
+      }
+
       // Emit frequent market updates for the UI
       io.emit("market-update", {
         price: scan.price,

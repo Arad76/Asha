@@ -12,6 +12,7 @@ import { mlService } from "./src/lib/mlService.ts";
 import { getPLANETARY_DATA } from "./src/lib/astrology.ts";
 import { getDayNumerology } from "./src/lib/numerology.ts";
 import { dataScanner } from "./src/lib/dataScanner.ts";
+import { fetchMexcTicker } from "./src/lib/mexc.ts";
 
 async function startServer() {
   const app = express();
@@ -25,12 +26,41 @@ async function startServer() {
 
   const PORT = 3000;
 
+  // ---- MEXC-backed trade-desk feed ----
+  // The browser connects to MEXC directly; this is the server-side fallback for
+  // the trade desk. It polls MEXC's public REST ticker (works once
+  // contract.mexc.com is allow-listed in the environment's network settings)
+  // and walks a local price otherwise, so the mark is never frozen.
+  const DESK_SYMBOL = process.env.MEXC_SYMBOL || "BTC_USDT";
+  let markPrice = 64000; // crypto-scale seed; replaced by the first live tick
+  let mexcLive = false;
+
+  setInterval(async () => {
+    const t = await fetchMexcTicker(DESK_SYMBOL);
+    if (t && t.lastPrice > 0) { markPrice = t.lastPrice; mexcLive = true; }
+    else { mexcLive = false; }
+  }, 3000);
+
+  setInterval(() => {
+    if (!mexcLive) {
+      const z = (Math.random() + Math.random() + Math.random() - 1.5) * 1.1; // ~normal
+      markPrice = Math.max(0.0001, markPrice * (1 + 0.0015 * z));
+    }
+    io.emit("price-tick", {
+      price: markPrice,
+      symbol: DESK_SYMBOL,
+      source: mexcLive ? "mexc" : "sim",
+      timestamp: new Date().toISOString(),
+    });
+  }, 1000);
+
   // ML Data Ingestion Loop (Every 60 seconds / Minute-by-Minute)
   setInterval(async () => {
     try {
       const scan = await dataScanner.performScan();
-      
-      // Emit frequent market updates for the UI
+
+      // Emit frequent market updates for the UI (oil/astro futures tape —
+      // kept separate from the MEXC crypto trade-desk feed above).
       io.emit("market-update", {
         price: scan.price,
         futures: scan.futures,
